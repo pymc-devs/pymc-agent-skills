@@ -1,2 +1,2 @@
 # pymc-agent-skills
-LLM agent skill files for PyMC and PyTensor 
+LLM agent skill files for PyMC, PyTensor, and other packages in the ecosystem  
