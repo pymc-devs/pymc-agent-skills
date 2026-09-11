@@ -1,0 +1,87 @@
+---
+name: pytensor-workflows
+description: Build, differentiate, compile, and debug PyTensor symbolic computations for models. Use for tensor shape or dtype errors, named dimensions, indexing and broadcasting, vectorization and scan, numerical or sparse operations, symbolic RNG state, graph transformations and profiling, or custom differentiable Ops and backend lowering. Do not activate for unrelated array-only tasks or substitute numerical checks for scientific model formulation and inference diagnostics.
+---
+
+# PyTensor workflows
+
+Use symbolic computation to express the intended calculation, then verify its
+values, shapes, derivatives, and state transitions. A compiled graph is not
+evidence that an inferential model is identified, converged, or adequate.
+
+## Establish the contract
+
+1. Use the project's existing environment. Check installed PyTensor and relevant
+   backend versions before choosing an API; development builds may differ.
+2. State input/output shapes, axis meanings, dtypes, support, and mutable or
+   random state. Named axes are not automatically coordinate-indexed arrays.
+3. Choose the simplest supported graph operation. Prefer existing tensor
+   primitives to an unnecessary custom Op. Preserve the scientific calculation
+   when diagnosing compiler or backend limitations.
+4. Check version-appropriate [official documentation](https://pytensor.readthedocs.io/)
+   and installed source when a signature or backend limitation is uncertain.
+5. Define an independent numerical or analytic reference and meaningful failure
+   cases before executing the example. Do not test only imports, source wording,
+   or the presence of an output file.
+
+## Select the relevant workflow
+
+- [Shapes and structured computation](references/shapes.md): dimensions,
+  broadcasting, indexing, vectorization, arithmetic/reductions, and control flow.
+- [Numerical, sparse, and spectral computation](references/numerics.md): stable
+  numerical formulations, sparse structure, special functions, and spectral
+  operations with explicit restrictions.
+- [Symbolic randomness](references/random.md): seeds, RNG state updates,
+  shape semantics, reproducibility, and accidental repeated draws.
+- [Graph compilation and profiling](references/compilation.md): graph/state
+  inspection, transformations, modes, real failures, and evidence-led fixes.
+- [Custom Ops and differentiation](references/custom-ops.md): type/shape
+  contracts, forward/reverse differentiation, numerical derivative checks, and
+  supported lowering interfaces.
+- [Optional backend lowering](references/custom-backends.md): native JAX,
+  PyTorch, and MLX representation, differentiation, and device restrictions.
+
+Read only the references needed for the calculation. This skill is independently
+installable; no other skill, host adapter, or service is required. If the graph
+belongs to a probabilistic model, numerical correctness does not replace its
+formulation, prior checks, inference diagnostics, or predictive criticism.
+
+## Verify the calculation
+
+- Compare compiled values to the declared reference over representative inputs,
+  including relevant boundaries. Check shape and dtype as well as values.
+- For differentiable computations, check the required Jacobian/vector products
+  or gradients independently. Explain nondifferentiable inputs and boundaries;
+  never return fabricated zero gradients merely to make inference run.
+- For stateful computations, demonstrate both intended progression and
+  reproducibility under a reconstructed initial state. Do not assume identical
+  random numbers across different backend implementations.
+- Reproduce a compiler failure before fixing it. Correct the graph, input
+  contract, or supported implementation rather than hiding the exception.
+- Separate compilation cost from repeated execution when profiling. Preserve
+  existing compiler caches and report measurements rather than universal speed
+  claims.
+- Record the exact modes/backends exercised. Missing optional dependencies,
+  unsupported operations, and untested hardware are different states. Linux
+  execution does not establish macOS or accelerator support.
+
+## Optional implementation examples
+
+Prefer built-in operations for ordinary models. The reusable
+[BinomialLogpOp](scripts/binomial_logp_op.py) illustrates a pointwise likelihood
+with explicit shape, support, and derivative contracts; it requires PyTensor,
+NumPy, and SciPy. Keep the modules in this skill's `scripts/` directory together
+on the Python import path when using an example.
+
+Import only the lowering needed **before** compiling for that backend:
+
+- [Numba](scripts/binomial_logp_numba.py) requires Numba.
+- [JAX](scripts/binomial_logp_jax.py) requires JAX/jaxlib with x64 enabled.
+- [PyTorch](scripts/binomial_logp_pytorch.py) requires PyTorch; this example is CPU-only.
+- [MLX](scripts/binomial_logp_mlx.py) requires MLX with CPU float64 support.
+
+These dependencies are optional and needed only for the corresponding examples.
+Importing the base Op does not register optional lowerings. Check values,
+derivatives, state, and unsupported inputs on the actual backend before using
+an extension in a model; a working forward calculation does not establish
+support for every shape-only, derivative, or accelerator graph.
