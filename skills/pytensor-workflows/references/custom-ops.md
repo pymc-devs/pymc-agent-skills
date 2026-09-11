@@ -21,11 +21,7 @@ replacement for the built-in distribution.
    Keep observation-level log probabilities for later pointwise diagnostics;
    sum only where a scalar objective is actually required.
 
-This reference concerns numerical extension correctness, not posterior
-convergence or model adequacy. A model using the Op still needs scientific
-formulation, defensible priors, suitable sampling, real diagnostics, and
-prior/posterior predictive checks. Changing the sampler or suppressing an error
-is not a substitute for a correct derivative.
+Verify derivatives before integrating the Op into an inference algorithm.
 
 ## API compatibility
 

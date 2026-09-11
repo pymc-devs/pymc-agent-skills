@@ -4,6 +4,143 @@ Examples use the modern ArviZ package family and DataTree APIs. Interval labels
 and plotting details below describe ArviZ 1.3; check version-matched documentation
 rather than mixing legacy InferenceData or matplotlib-Axes recipes.
 
+## Complete diagnostic example
+
+This script fits its own illustrative Gaussian regression: 80 synthetic rows,
+independent `Normal(0,1)` intercept/slope priors and known observation-noise SD
+0.5. The fixed seed and four-chain, 1,000-tune/1,000-draw allocation make the
+example reproducible; choose real sampling budgets from exploration and
+estimand-specific precision. Native PyMC sampling needs no optional sampler.
+The figures use Matplotlib. NetCDF output needs a compatible backend, such as
+`h5netcdf` with `h5py`.
+
+```python
+import arviz as az
+import numpy as np
+import pymc as pm
+
+seed = 20260911
+rng = np.random.default_rng(seed)
+x = np.linspace(-1.0, 1.0, 80)
+noise_sd = 0.5
+y = 0.5 + 1.2 * x + rng.normal(0.0, noise_sd, 80)
+coords = {"obs": np.arange(x.size)}
+
+with pm.Model(coords=coords) as model:
+    x_data = pm.Data("x", x, dims="obs")
+    alpha = pm.Normal("alpha", mu=0.0, sigma=1.0)
+    beta = pm.Normal("beta", mu=0.0, sigma=1.0)
+    mu = pm.Deterministic("mu", alpha + beta * x_data, dims="obs")
+    pm.Normal("response", mu=mu, sigma=noise_sd, observed=y,
+              shape=x_data.shape, dims="obs")
+    factors = model.point_logps()
+    print("Initial log-density factors:", factors)
+    if not all(np.isfinite(value) for value in factors.values()):
+        raise ValueError("Inspect model support and initial values before sampling.")
+    idata = pm.sample(
+        chains=4, cores=1, tune=1000, draws=1000,
+        nuts_sampler="pymc", random_seed=seed,
+    )
+
+idata.to_netcdf("diagnostics_raw.nc")  # Save before any postprocessing.
+posterior = idata["posterior"].to_dataset()
+summary = az.summary(
+    idata, var_names=["alpha", "beta"], ci_prob=0.89, ci_kind="eti",
+    round_to="none",
+)
+print(summary[["mean", "sd", "eti89_lb", "eti89_ub", "r_hat",
+               "ess_bulk", "ess_tail", "mcse_mean", "mcse_sd"]])
+divergences_by_chain = idata["sample_stats"]["diverging"].sum("draw")
+print("Divergences by chain:", divergences_by_chain)
+
+# The estimand is the mean-response change from x=-1 to x=1, in response units.
+contrast = (2.0 * posterior["beta"]).transpose("chain", "draw").values
+contrast_eti = np.quantile(contrast, [0.055, 0.945])
+contrast_mean_mcse = az.mcse(contrast, method="mean")
+contrast_endpoint_mcse = [
+    az.mcse(contrast, method="quantile", prob=q) for q in (0.055, 0.945)
+]
+print(f"Mean-response contrast: mean={contrast.mean():.6f}, "
+      f"89% ETI={contrast_eti}, mean MCSE={contrast_mean_mcse:.6f}")
+print("Contrast ETI endpoint MCSEs:", contrast_endpoint_mcse)
+print("Contrast ESS at ETI tails:",
+      az.ess(contrast, method="tail", prob=(0.055, 0.945)))
+
+# Deliberately damaged diagnostic fixture; preserve the genuine fit.
+original_alpha = posterior["alpha"].values.copy()
+shifted = idata.copy(deep=True)
+first_chain = shifted["posterior"]["chain"].values[0]
+shifted["posterior"]["alpha"] = (
+    shifted["posterior"]["alpha"]
+    + 3.0 * (shifted["posterior"]["chain"] == first_chain)
+)
+shifted_values = shifted["posterior"]["alpha"].transpose("chain", "draw").values
+original_rhat = az.rhat(
+    posterior["alpha"].transpose("chain", "draw").values, method="rank"
+)
+shifted_rhat = az.rhat(shifted_values, method="rank")
+print(f"Intercept rank R-hat: genuine={original_rhat:.6f}, "
+      f"shifted-chain fixture={shifted_rhat:.6f}")
+print("Original intercept unchanged:",
+      np.array_equal(idata["posterior"]["alpha"].values, original_alpha))
+
+# Enrich only the genuine fit; preserve observation identities in both groups.
+pm.compute_log_likelihood(idata, model=model)
+pp = pm.sample_posterior_predictive(
+    idata, model=model, var_names=["response"], random_seed=seed,
+)
+idata["posterior_predictive"] = pp["posterior_predictive"]
+idata.to_netcdf("diagnostics_enriched.nc")
+
+trace = az.plot_trace_dist(
+    idata, var_names=["alpha", "beta"], backend="matplotlib",
+)
+trace.savefig("diagnostics_trace.png", bbox_inches="tight")
+rank = az.plot_rank(idata, var_names=["alpha", "beta"], backend="matplotlib")
+rank.savefig("diagnostics_rank.png", bbox_inches="tight")
+ppc = az.plot_ppc_dist(
+    idata, var_names=["response"], kind="ecdf", backend="matplotlib",
+)
+ppc.savefig("diagnostics_ppc.png", bbox_inches="tight")
+replicated = idata["posterior_predictive"]["response"]
+print("Observed response mean and range:", y.mean(), np.ptp(y))
+print("Replicated-dataset mean 89% ETI:",
+      replicated.mean("obs").quantile([0.055, 0.945], dim=("chain", "draw")).values)
+print("Replicated-dataset range 89% ETI:",
+      (replicated.max("obs") - replicated.min("obs")).quantile(
+          [0.055, 0.945], dim=("chain", "draw")).values)
+
+# Prediction target: a new exchangeable row, not a new group or future time.
+loo = az.loo(idata, var_name="response", pointwise=True)
+print(f"LOO ELPD={loo.elpd:.3f}, SE={loo.se:.3f}, p={loo.p:.3f}")
+print("Pointwise observation identities:", loo.elpd_i["obs"].values)
+unreliable = (loo.pareto_k > loo.good_k) | ~np.isfinite(loo.pareto_k)
+print(f"Pareto-k threshold={loo.good_k:.3f}, "
+      f"max k={loo.pareto_k.max().item():.3f}, "
+      f"flagged={unreliable.sum().item()}, warning={loo.warning}")
+khat = az.plot_khat(loo, backend="matplotlib")
+khat.savefig("diagnostics_khat.png", bbox_inches="tight")
+print("Inspect diagnostics_trace.png, diagnostics_rank.png, "
+      "diagnostics_ppc.png and diagnostics_khat.png.")
+```
+
+Inspect the saved figures, not just their filenames. For **computation**, use
+the genuine fit's divergence counts, R-hat, ESS and MCSE together with trace/rank
+behavior. Small MCSE is simulation precision; the 89% ETI describes posterior
+uncertainty. The deliberately shifted copy should have a worse intercept R-hat
+than the genuine fit and exceed 1.01. Its other variables and stored sampler
+statistics are deliberately inconsistent with the shifted intercept: it is
+only a diagnostic failure fixture, never a revised posterior or predictive fit.
+
+For **in-sample adequacy**, compare the response ECDF, dataset mean and range;
+then investigate conditional residual patterns or other scientific discrepancies
+the marginal plot could hide. Agreement supports only the features inspected,
+not held-out validation. For **predictive evaluation**, report pointwise LOO's
+80 observation identities, threshold, warnings and influential rows before
+using its ELPD for the declared exchangeable-row target. ELPD is a predictive
+log score, not a Bayes factor. Preserve failed diagnostics and revisit their
+causes rather than rerunning seeds to obtain a passing example.
+
 ## Preserve dimensions and identify the target
 
 Save inference before postprocessing. Keep original chains and draw order; do
@@ -50,15 +187,15 @@ rather than deprecated PyMC root aliases.
 
 ## Interpret health and precision separately
 
-| Diagnostic | Investigate | Does not establish |
+| Diagnostic | Investigate | Interpretation/action |
 |---|---|---|
-| HMC divergences by chain/location | Integration, gradients, scaling, constraints and difficult geometry | A small nonzero fraction is harmless, or a particular likelihood is wrong |
-| Rank-normalized split R-hat | Between/split-chain location and scale disagreement | Near-one values found every mode |
-| Bulk ESS | Effective information for central behavior | Stored draw count equals effective information |
-| Tail ESS | Exploration at the stated tail probabilities | Good bulk ESS implies precise extreme quantiles |
-| Mean/SD/quantile MCSE | Precision for the actual estimand in meaningful units | Posterior uncertainty equals Monte Carlo error |
-| Trace/rank graphics | Drifting, sticking, scale separation and rank imbalance | Producing a plot means it passed inspection |
-| Energy/BFMI | Chain-specific HMC energy exploration | One universal threshold diagnoses all samplers/models |
+| HMC divergences by chain/location | Integration, gradients, scaling, constraints and difficult geometry | Investigate even small nonzero counts; locate problems before choosing a remedy |
+| Rank-normalized split R-hat | Between/split-chain location and scale disagreement | Near-one values still require evidence of relevant-mode exploration |
+| Bulk ESS | Effective information for central behavior | Use effective information rather than stored draw count |
+| Tail ESS | Exploration at the stated tail probabilities | Check the quantiles needed for the claim separately from central behavior |
+| Mean/SD/quantile MCSE | Precision for the actual estimand in meaningful units | Report separately from posterior uncertainty |
+| Trace/rank graphics | Drifting, sticking, scale separation and rank imbalance | Locate affected chains/coordinates and compare with numerical diagnostics |
+| Energy/BFMI | Chain-specific HMC energy exploration | Interpret for the actual sampler and model |
 
 R-hat below 1.01 and bulk/tail ESS above 400 are useful screens, not sufficiency
 proofs. Choose mean, quantile or event-probability MCSE requirements from the
@@ -68,11 +205,10 @@ to another sampler: do not invent zeros or infer NUTS semantics for Metropolis.
 
 Apply accuracy requirements to the claim being made. An explicitly exploratory
 fit may have short chains and unresolved diagnostics yet reveal what to debug or
-which model assumption to investigate next. Do not label it converged or use its
-summaries as reliable final inference. Refit to the required accuracy before
-reporting conclusions; rough exploration is not permission to hide failed checks.
+which model assumption to investigate next. Retain its unresolved checks and
+refit to the required accuracy before reporting reliable final inference.
 
-`az.diagnose` offers an overview, not a substitute for estimand-specific checks.
+Use `az.diagnose` for an overview alongside estimand-specific checks.
 More draws reduce MCSE only after trustworthy exploration. Funnels, missing
 modes and non-identifiability need investigation first. Non-centering often
 helps weakly informed scales; centering or partial parameterization may suit

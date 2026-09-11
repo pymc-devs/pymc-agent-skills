@@ -136,12 +136,10 @@ versions retain the same implementation.
   t coordinates rotated by Cholesky do not generally yield the same elliptical
   multivariate t as a shared random mixing scale; check reparameterized priors.
 - **MarginalKron noisy predictions:** verify observation noise contributes sigma²,
-  not sigma, in full/diagonal covariance and conditional builders. Correct latent
-  conditioning does not establish correct noisy predictions.
+  not sigma, in full/diagonal covariance and conditional builders.
 
 `util.stabilize` only adds jitter. `plot_gp_dist` requires ordered input and an
-explicit interval interpretation; a generated plot proves neither convergence
-nor approximation accuracy. Latent/HSGP objects use their latent interfaces, not
+explicit interval interpretation. Latent/HSGP objects use their latent interfaces, not
 unimplemented inherited `predict`/`marginal_likelihood` methods.
 
 Sources: [GP API](https://www.pymc.io/projects/docs/en/stable/api/gp.html),

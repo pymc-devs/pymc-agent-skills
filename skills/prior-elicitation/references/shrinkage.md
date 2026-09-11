@@ -128,8 +128,8 @@ multilevel broadcasting semantics; do not infer them from the symmetric example.
   interval does not establish miscalibration; repeated calibration needs a
   declared repeated-sampling experiment.
 - Report practical coefficient probabilities and prediction intervals with MCSE.
-  Healthy coefficient summaries do not excuse divergent trajectories or poor
-  latent-scale mixing. Neither prior supplies automatic variable selection.
+  Include latent-scale exploration and any divergent trajectories in the
+  assessment alongside coefficient summaries.
 
 ## Primary sources
 

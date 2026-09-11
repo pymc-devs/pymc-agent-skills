@@ -92,7 +92,7 @@ computation, not an identified causal structure.
 Construct immutable graphs with the supported `freeze_model` transformation, not
 `FrozenModel(...)`. New graph nodes are rejected; some data remain settable only
 when free variables do not depend on them. Inspect which data became constants
-before promising reusable prediction. Immutability does not imply posterior validity.
+before promising reusable prediction.
 
 Sources: [model API](https://www.pymc.io/projects/docs/en/stable/api/model/core.html),
 [model implementation](https://github.com/pymc-devs/pymc/blob/v6.3.1/pymc/model/core.py),

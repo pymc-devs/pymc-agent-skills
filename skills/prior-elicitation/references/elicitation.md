@@ -101,30 +101,100 @@ validated model. Elicit the predictive target independently; never substitute
 held-out outcomes. Review the proposal rather than automatically executing the
 string, and repeat prior predictive checks.
 
-## Prior predictive plausibility
+## Complete prior predictive example
 
-Given a model with observed variable `y` and observation dimension `obs`:
+Before inspecting outcomes, declare these **illustrative**, not expert-supplied,
+assumptions for a regression in predetermined standardized units:
+
+- The intercept has central 95% prior mass in [-1, 1].
+- The change in latent mean from x=-1 to x=1 has central 95% prior mass in [-1, 1].
+- Intercept and slope are independent Normals; residual SD is known to be 0.5.
+
+The predictor contrast is `2*beta`, so the slope SD is half the intercept SD.
+This script constructs its own 80-row synthetic dataset; it does not estimate
+standardization or prior bounds from the realized outcomes. The generating slope
+is deliberately larger than the stated prior contrast allows with high
+probability, making it important to distinguish assumptions from the simulator.
+NetCDF output needs a compatible backend, such as `h5netcdf` with `h5py`;
+the saved figure uses Matplotlib.
 
 ```python
+import arviz as az
+import numpy as np
 import pymc as pm
+from scipy.stats import norm
 
-with model:
-    prior = pm.sample_prior_predictive(draws=1000, random_seed=42)
-replicated = prior["prior_predictive"]["y"]
+seed = 20260911
+rng = np.random.default_rng(seed)
+
+# Translate the declared central masses before inspecting simulated outcomes.
+z = norm.ppf(0.975)
+alpha_sd = 1.0 / z
+beta_sd = 1.0 / (2.0 * z)
+noise_sd = 0.5
+alpha_mass = norm.cdf(1.0, scale=alpha_sd) - norm.cdf(-1.0, scale=alpha_sd)
+contrast_mass = (
+    norm.cdf(1.0, scale=2.0 * beta_sd)
+    - norm.cdf(-1.0, scale=2.0 * beta_sd)
+)
+print(f"Analytic P(-1 <= alpha <= 1): {alpha_mass:.12f}")
+print(f"Analytic P(-1 <= 2*beta <= 1): {contrast_mass:.12f}")
+
+x = np.linspace(-1.0, 1.0, 80)
+y = 0.5 + 1.2 * x + rng.normal(0.0, noise_sd, 80)
+coords = {"obs": np.arange(x.size)}
+
+with pm.Model(coords=coords) as model:
+    x_data = pm.Data("x", x, dims="obs")
+    alpha = pm.Normal("alpha", mu=0.0, sigma=alpha_sd)
+    beta = pm.Normal("beta", mu=0.0, sigma=beta_sd)
+    mu = pm.Deterministic("mu", alpha + beta * x_data, dims="obs")
+    pm.Normal("response", mu=mu, sigma=noise_sd, observed=y,
+              shape=x_data.shape, dims="obs")
+    prior = pm.sample_prior_predictive(draws=1000, random_seed=seed)
+
+prior.to_netcdf("prior_predictive_raw.nc")  # Preserve simulation before analysis.
+replicated = prior["prior_predictive"]["response"]
 dataset_mean = replicated.mean("obs")
 dataset_range = replicated.max("obs") - replicated.min("obs")
+for label, statistic in (("Dataset mean", dataset_mean),
+                         ("Dataset range", dataset_range)):
+    interval = statistic.quantile([0.055, 0.5, 0.945], dim=("chain", "draw"))
+    print(f"{label}: 5.5%, median, 94.5% = {interval.values}")
+
+# One event per independent parameter/dataset draw, not per observation.
+contrast = 2.0 * prior["prior"]["beta"]
+inside = (contrast >= -1.0) & (contrast <= 1.0)
+n_datasets = inside.size
+probability = inside.mean().item()
+probability_mcse = np.sqrt(probability * (1.0 - probability) / n_datasets)
+print(f"P(-1 <= 2*beta <= 1): {probability:.4f}; "
+      f"binomial MCSE={probability_mcse:.4f}; {n_datasets} prior datasets")
+
+prior_plot = az.plot_ppc_dist(
+    prior, group="prior_predictive", var_names=["response"], kind="ecdf",
+    backend="matplotlib",
+)
+prior_plot.savefig("prior_predictive.png", bbox_inches="tight")
+print("Inspect prior_predictive.png against the declared scale assumptions.")
 ```
 
-Choose simulation size for the precision of the tail probabilities being assessed;
-the example count is not a guarantee. Inspect physical support, conditional
-scales, replicated-dataset extremes, dependence, group variation and scientifically
-meaningful contrasts. Keep datasets intact when estimating Monte Carlo uncertainty:
-observations sharing one parameter draw are not independent prior replicates.
+The analytic central masses are 0.95. The simulation estimates the contrast
+probability with binomial Monte Carlo uncertainty based on 1,000 independent
+parameter draws, not 80,000 correlated-within-dataset observations. Choose the
+simulation count for the tail precision needed; a plug-in binomial MCSE can be
+misleading for rare events with no simulated occurrences.
 
-Broad intervals covering observed extrema do not establish plausibility. A
-plausibility failure warrants revisiting assumptions, not seed search, clipping
-or relaxing a bound after seeing the result. Separate latent-mean uncertainty
-from a future observation's residual variation.
+Open the saved ECDF plot and inspect location, spread and tails alongside the
+dataset summaries. A marginal ECDF can hide predictor-conditional disagreement,
+so retain the explicit slope contrast. In an application, also check physical
+support, dependence and group variation. The latent-mean contrast excludes
+residual noise; replicated observations include its known SD of 0.5.
+
+If these predictions are implausible, return to the declared intercept/contrast
+bounds, independence, noise assumption or likelihood and record the scientific
+reason for a revision. Avoid outcome-extrema tuning, seed search and clipping.
+This is prior elicitation and plausibility checking, not posterior fitting.
 
 ## Sensitivity to reasonable alternatives
 

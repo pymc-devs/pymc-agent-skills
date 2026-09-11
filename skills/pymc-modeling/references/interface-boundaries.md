@@ -57,31 +57,10 @@ signature grammar from another release. Check event/batch shape, RNG updates,
 log density, derivatives and predictive draws when extending these protocols.
 
 Inner inputs/outputs, `fn`, `itypes`/`otypes` and `view_map`/`destroy_map` are compiler
-contracts, not additional likelihood choices. Never falsely promise alias-safe
-mutation. Transform `name`/`ndim_supp` describes inference-space support handling;
-internal bound-input indices are not user-specified numeric bounds. Imported
-modules, sentinels and inherited constructors do not create new scientific APIs.
+contracts. Check aliasing and permitted mutation when implementing them.
+Transform `name`/`ndim_supp` describes inference-space support handling;
+internal bound-input indices are not user-specified numeric bounds.
 
 Source: [distribution infrastructure](https://github.com/pymc-devs/pymc/blob/v6.3.1/pymc/distributions/distribution.py).
 
-## Interpret failures instead of suppressing them
-
-| Signal | Investigate |
-|---|---|
-| `ShapeError`, `ShapeWarning`, `DtypeError` | Alignment, dimensions and numeric representation. |
-| `IncorrectArgumentsError`, `NotConstantValueError` | Argument contract or an unjustified graph-constant assumption. |
-| `ImputationWarning` | Missing-data mechanism and its implied latent variables. |
-| `ImplicitFreezeWarning` | Changed ancestors and the intended predictive conditioning; choose `sample_vars`/`freeze_vars` deliberately. |
-| `UndefinedMomentException` | Missing moment/support-point implementation, not necessarily impossible inference. |
-| `TruncationError` | Truncated random generation and its numerical limits. |
-| `TraceDirectoryError` | Storage setup and recovery. |
-| `BlockModelAccessError` | Prohibited context access during graph construction. |
-
-Catch only failures the application can interpret, preserving causes.
-`drop_warning_stat` can remove object-valued warning fields incompatible with
-serialization. Save/report warning content first; deleting the field does not
-repair the scientific cause. Configure supported sampling progress options rather
-than manipulating renderer internals.
-
-Sources: [exceptions](https://github.com/pymc-devs/pymc/blob/v6.3.1/pymc/exceptions.py),
-[warning serialization helper](https://github.com/pymc-devs/pymc/blob/v6.3.1/pymc/util.py).
+For warnings and failed calls, start with [Troubleshooting](troubleshooting.md).

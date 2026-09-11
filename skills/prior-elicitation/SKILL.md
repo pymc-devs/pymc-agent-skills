@@ -1,9 +1,9 @@
 ---
 name: prior-elicitation
 description: >-
-  Choose and elicit Bayesian priors in meaningful units. Use for PreliZ,
-  constrained priors, expert quantiles, prior predictive checks, prior sensitivity,
-  power scaling, regularized horseshoe and R2D2 shrinkage assumptions.
+  Elicit and check Bayesian prior assumptions in meaningful units. Use for expert
+  quantiles, PreliZ, constrained priors, prior-predictive plausibility and prior
+  sensitivity, including power scaling, regularized horseshoe and R2D2 assumptions.
 ---
 
 # Prior elicitation
@@ -29,8 +29,8 @@ quantity's meaning to a distribution, then check its observable implications.
 4. **Simulate prior predictions.** Use `pm.sample_prior_predictive(draws=...)`;
    access the resulting DataTree with `prior["prior_predictive"]`. Check support,
    conditional scales, dataset extremes and scientific contrasts against stated
-   plausibility judgments. Broadly covering the observed range is not enough.
-   Investigate implausibility rather than clipping predictions or changing seeds.
+   plausibility judgments, beyond observed-range coverage. Revisit assumptions
+   when predictions are implausible, preserving support and simulation uncertainty.
    These are plausibility checks, not SBC of an inference implementation.
 5. **Assess reasonable alternatives.** Vary plausible scales and tails while
    holding data, likelihood, transformations and estimand fixed for a prior
@@ -46,7 +46,8 @@ quantity's meaning to a distribution, then check its observable implications.
 ## References
 
 - [Elicitation, PreliZ, prior predictions and sensitivity](references/elicitation.md)
-  — unit conversions, expert workflow, analytic checks and power reweighting.
+  — a complete prior-predictive example, unit conversions, expert workflow,
+  analytic checks and power reweighting.
 - [Shrinkage and regularization](references/shrinkage.md) — regularized horseshoe
   scales, R2D2 variance allocation, geometry and interpretation.
 

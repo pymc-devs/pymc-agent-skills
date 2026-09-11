@@ -19,8 +19,8 @@ training folds; never include future outcomes. Constant Y yields zero empirical
 leaf scale and needs explicit investigation.
 
 Depth probability is `alpha*(1+depth)**(-beta)`. Tree count, depth, split weights
-and particle/batch settings change regularization/exploration; defaults do not
-prove adequacy. Assess sensitivity with the same scientific target.
+and particle/batch settings change regularization/exploration. Assess sensitivity
+with the same scientific target.
 
 Before tree history exists, this version's `BARTRV.rng_fn` returns a constant
 training-response mean. A prior-predictive call therefore does **not** simulate a

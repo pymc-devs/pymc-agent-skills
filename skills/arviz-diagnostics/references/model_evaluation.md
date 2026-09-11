@@ -2,8 +2,6 @@
 
 This reference uses modern ArviZ DataTree workflows. API details below describe
 the ArviZ 1.3 family; check installed signatures when adapting to another release.
-Computational health, importance-sampling reliability and predictive performance
-are separate questions.
 
 ## Define what is being predicted
 
@@ -240,7 +238,6 @@ density divided by prior density at `theta0` only when the identity's conditions
 hold, including compatible conditional nuisance priors. Check support, proper
 priors, density-estimation accuracy and numerator/denominator orientation.
 An analytic conjugate calculation can expose KDE error in a simple model.
-Neither a log-prior group nor an ELPD table computes marginal likelihood.
 
 ## Primary sources
 
@@ -251,6 +248,7 @@ Neither a log-prior group nor an ELPD table computes marginal likelihood.
 - [Yao et al.: stacking predictive distributions](https://arxiv.org/abs/1704.02030).
 - [Sivula et al.: uncertainty in LOO model comparison](https://arxiv.org/abs/2008.10296).
 - [Paananen et al.: implicitly adaptive importance sampling](https://arxiv.org/abs/1906.08850).
-- [Heck: Savage–Dickey density-ratio caveats](https://doi.org/10.1111/bmsp.12150).
+- [Heck: Savage–Dickey density-ratio caveats (abstract)](https://pubmed.ncbi.nlm.nih.gov/30451277/).
+  DOI: `10.1111/bmsp.12150`.
 - [Bayesian Workflow](https://users.aalto.fi/~ave/Bayesian-Workflow.pdf)
   (2026 corrected edition, §7.3 and §§9.2–9.6).

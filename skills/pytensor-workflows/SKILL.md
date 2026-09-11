@@ -1,13 +1,12 @@
 ---
 name: pytensor-workflows
-description: Build, differentiate, compile, and debug PyTensor symbolic computations for models. Use for tensor shape or dtype errors, named dimensions, indexing and broadcasting, vectorization and scan, numerical or sparse operations, symbolic RNG state, graph transformations and profiling, or custom differentiable Ops and backend lowering. Do not activate for unrelated array-only tasks or substitute numerical checks for scientific model formulation and inference diagnostics.
+description: Build, differentiate, compile, and debug PyTensor symbolic computations for models. Use for symbolic tensor shape or dtype errors, named dimensions, indexing and broadcasting, vectorization and scan, numerical or sparse operations, symbolic RNG state, graph transformations and profiling, or custom differentiable Ops and backend lowering.
 ---
 
 # PyTensor workflows
 
-Use symbolic computation to express the intended calculation, then verify its
-values, shapes, derivatives, and state transitions. A compiled graph is not
-evidence that an inferential model is identified, converged, or adequate.
+Express the intended calculation, then verify its values, shapes, derivatives,
+and state transitions.
 
 ## Establish the contract
 
@@ -21,8 +20,7 @@ evidence that an inferential model is identified, converged, or adequate.
 4. Check version-appropriate [official documentation](https://pytensor.readthedocs.io/)
    and installed source when a signature or backend limitation is uncertain.
 5. Define an independent numerical or analytic reference and meaningful failure
-   cases before executing the example. Do not test only imports, source wording,
-   or the presence of an output file.
+   cases before executing the example.
 
 ## Select the relevant workflow
 
@@ -64,6 +62,36 @@ formulation, prior checks, inference diagnostics, or predictive criticism.
 - Record the exact modes/backends exercised. Missing optional dependencies,
   unsupported operations, and untested hardware are different states. Linux
   execution does not establish macOS or accelerator support.
+
+### Minimal runnable graph
+
+This float64 vector example compiles a squared norm and its gradient, checks
+both against independent references, and exercises the rank contract.
+
+```python
+import numpy as np
+import pytensor
+import pytensor.tensor as pt
+from pytensor.gradient import grad
+
+x = pt.vector("x", dtype="float64")
+energy = pt.sqr(x).sum()
+evaluate = pytensor.function([x], [energy, grad(energy, x)])
+
+values = np.array([1.0, -2.0, 3.0], dtype="float64")
+value, derivative = evaluate(values)
+np.testing.assert_allclose(value, np.square(values).sum(), rtol=1e-12)
+np.testing.assert_allclose(derivative, 2 * values, rtol=1e-12)
+print("Squared norm:", float(value))  # 14.0
+print("Gradient:", derivative)  # [ 2. -4.  6.]
+
+try:
+    evaluate(values.reshape(1, -1))
+except TypeError as error:
+    print("Rank-two input rejected:", error)
+else:
+    raise AssertionError("A vector input accepted a rank-two array")
+```
 
 ## Optional implementation examples
 

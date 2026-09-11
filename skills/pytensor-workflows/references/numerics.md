@@ -3,8 +3,7 @@
 Use this reference when a model needs a linear solve, covariance calculation,
 sparse design matrix, stable special function, implicit equation, interpolation,
 or spectral/filter operation. First state the mathematical quantity, input units,
-core and batch dimensions, dtype, domain, and a reference identity. A graph that
-compiles is not evidence that the quantity is appropriate for a scientific model.
+core and batch dimensions, dtype, domain, and a reference identity.
 
 ## API and numerical boundaries
 
@@ -12,8 +11,7 @@ Version-specific cautions below refer to PyTensor 3.3.0; use the linked official
 source to check the installed version. Availability of an operation and
 availability of its gradient or backend lowering are separate questions.
 Choose an independent NumPy/SciPy reference, equation residual, or reconstruction
-identity before trusting numerical output. In a probabilistic model, these
-checks do not replace prior/predictive criticism or inference diagnostics.
+identity before trusting numerical output.
 
 ## Dense solves and Gaussian calculations
 

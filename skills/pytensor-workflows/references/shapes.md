@@ -2,11 +2,9 @@
 
 ## Define the calculation
 
-Use this workflow to express a model's **deterministic computation**, not to
-choose its likelihood, priors, parameterization, or sampler. Write the observation
-unit, predictor units, group-code mapping, time ordering, and intended output axes
-before building a graph. A numerically correct predictor does not establish an
-identified or scientifically adequate probabilistic model.
+Use this workflow to express a model's **deterministic computation**. Write the
+observation unit, predictor units, group-code mapping, time ordering, and intended
+output axes before building a graph.
 
 API cautions below refer to PyTensor 3.3.0 and PyMC 6.3.1; check the linked
 official source against the installed version. `pymc.dims` and

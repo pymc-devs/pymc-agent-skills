@@ -1,0 +1,57 @@
+name: Upstream links and releases
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 8 * * 1'
+  pull_request:
+    paths:
+      - README.md
+      - 'skills/**'
+      - '.github/**'
+  push:
+    paths:
+      - README.md
+      - 'skills/**'
+      - '.github/**'
+
+permissions:
+  contents: read
+
+jobs:
+  upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Check local and external links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
+        with:
+          lycheeVersion: v0.24.2
+          fail: true
+          failIfEmpty: true
+          jobSummary: true
+          output: ${{ runner.temp }}/lychee-report.md
+          token: ${{ github.token }}
+          # Preserve status/error details: 404/410 indicate missing pages;
+          # 403/429, timeouts and other access failures remain unresolved.
+          args: >-
+            --no-progress
+            --method GET
+            --timeout 20
+            --max-retries 2
+            --max-concurrency 4
+            --exclude-all-private
+            README.md 'skills/**/*.md' 'skills/**/*.py'
+
+      - name: Detect upstream releases requiring review
+        if: always()
+        run: node .github/check-upstream.mjs

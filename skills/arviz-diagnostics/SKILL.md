@@ -1,16 +1,17 @@
 ---
 name: arviz-diagnostics
 description: >-
-  Diagnose MCMC output with modern ArviZ DataTree summaries, divergences, rank
-  R-hat, ESS and Monte Carlo precision. Use for posterior predictive checks,
-  calibration, LOO/ELPD, Pareto k, stacking, grouped or temporal validation,
-  survival diagnostics and Bayes-factor interpretation.
+  Diagnose existing Bayesian inference output and evaluate fitted predictions
+  with modern ArviZ DataTree summaries, divergences, rank R-hat, ESS and Monte
+  Carlo precision. Use for posterior predictive checks, calibration, LOO/ELPD,
+  Pareto k, stacking, grouped or temporal validation, survival diagnostics and
+  Bayes-factor interpretation.
 ---
 
 # ArviZ diagnostics
 
-Computational health, predictive adequacy and scientific validity are different
-claims. Healthy chains do not establish a correct likelihood or causal model.
+Assess computational health, predictive adequacy and scientific validity
+separately, matching each check to the claim it can support.
 
 ## Workflow
 
@@ -53,8 +54,9 @@ claims. Healthy chains do not establish a correct likelihood or causal model.
 
 ## References
 
-- [Diagnostics and predictive checks](references/diagnostics.md) — DataTree APIs,
-  interval/MCSE semantics, plots, regression, counts, survival and nested chains.
+- [Diagnostics and predictive checks](references/diagnostics.md) — a complete
+  diagnostic example, DataTree APIs, interval/MCSE semantics, plots, regression,
+  counts, survival and nested chains.
 - [Predictive evaluation and model comparison](references/model_evaluation.md) —
   LOO, high-k remedies, predictive metrics, stacking and validation design.
 

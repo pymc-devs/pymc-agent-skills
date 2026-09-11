@@ -122,6 +122,6 @@ zeros differently. Mixed atom/continuous free variables are not ordinary NUTS
 parameters; an observed hurdle likelihood for continuous parameters is different.
 
 Sources: [PyMC mixture implementation](https://github.com/pymc-devs/pymc/blob/v6.3.1/pymc/distributions/mixture.py),
-[extras marginalization](https://www.pymc.io/projects/extras/en/stable/api/marginal.html),
-[extras source](https://github.com/pymc-devs/pymc-extras/tree/v0.14.0/pymc_extras/marginal),
+[extras marginalization](https://www.pymc.io/projects/extras/en/stable/api/marginalization.html),
+[extras source](https://github.com/pymc-devs/pymc-extras/tree/v0.14.0/pymc_extras/model/marginal),
 [extras dependency metadata](https://github.com/pymc-devs/pymc-extras/blob/v0.14.0/pyproject.toml).

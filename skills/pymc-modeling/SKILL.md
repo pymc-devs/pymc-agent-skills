@@ -4,9 +4,9 @@ description: >-
   Build, revise, and debug Bayesian models with PyMC. Use when choosing
   likelihoods and priors, specifying model/data dimensions, fitting hierarchical
   models, GPs, time series, mixtures, BART or splines, selecting inference methods,
-  generating predictions, or testing model code with simulated data and
-  simulation-based calibration (SBC). Covers PyMC 6+, PyTensor 3+ and ArviZ
-  1.0 DataTree workflows.
+  resolving failed initial evaluation or model/data shape errors, generating
+  predictions, or testing model code with simulated data and simulation-based
+  calibration (SBC). Covers PyMC 6+, PyTensor 3+ and ArviZ 1.0 DataTree workflows.
 ---
 
 # PyMC modeling
@@ -15,6 +15,19 @@ Choose a useful starting point: a simple scaffold, an established subject-matter
 model, or a decomposition of a larger target model. Expand, simplify or branch
 as the question, data and checks warrant. Use the consuming project's data and
 Python environment; check installed APIs and package compatibility.
+
+## Choose the primary task
+
+- Construct, fit or initialize a model: use `pymc-modeling`.
+- Elicit prior assumptions or check prior-predictive plausibility: use
+  `prior-elicitation` when available.
+- Diagnose an existing completed fit or evaluate its predictions: use
+  `arviz-diagnostics` when available.
+- Repair symbolic computation, broadcasting, gradients or compilation: use
+  `pytensor-workflows` when available.
+
+Multipart requests can use more than one skill. The references below support
+modeling when specialist skills are not installed.
 
 ## Workflow
 
@@ -64,6 +77,7 @@ conventions, not universal Bayesian workflow requirements. Choose them for the t
 |---|---|
 | End-to-end fitting, diagnostics and scientific checks | [Workflow](references/workflow.md) |
 | Model construction, data containers and dimensions | [Model and data](references/model-data-dimensions.md) |
+| Failed initialization, shape errors, stuck sampling or warnings | [Troubleshooting](references/troubleshooting.md) |
 | Group effects, pooling and parameterization | [Hierarchical models](references/hierarchical.md) |
 | Outcome support, censoring, multivariate families and Jacobians | [Likelihoods](references/likelihoods.md) |
 | Algorithms, backends, budgets and persistence | [Sampling](references/sampling.md) |
@@ -78,9 +92,7 @@ conventions, not universal Bayesian workflow requirements. Choose them for the t
 | Basis penalties and distributional predictors | [Splines](references/splines-distributional.md) |
 | Simulated-data experiments, SBC, numerical oracles and mocks | [Model testing](references/model-testing.md) |
 | Advanced numerical and extension interfaces | [Interface boundaries](references/interface-boundaries.md) |
-| Version-specific signatures and official source | [API lookup](references/documentation-lookup.md) |
 
-The optional `scripts/lookup_api.py` helper prints local API details and official
-documentation URLs as JSON; no network access or bundled dataset is needed. If available,
-`prior-elicitation`, `arviz-diagnostics` and `pytensor-workflows` offer deeper
-specialist guidance. None is required to apply this skill independently.
+For version-specific APIs, use `help()` or `inspect.signature()` on the installed
+object in the consuming environment, then consult version-matched official
+documentation or source.

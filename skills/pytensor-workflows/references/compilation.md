@@ -6,7 +6,6 @@ State the intended calculation and its input/output shape, dtype, domain, and
 state contracts. For example, half the squared residual norm is
 `0.5 * sum((measurements - center)**2)`; graph transformations should preserve
 that expression's values and derivatives unless a semantic change is intended.
-An initial-point log-density check is not posterior inference or model adequacy.
 
 API cautions below refer to PyTensor 3.3.0 and PyMC 6.3.1. Check the linked
 official source against the installed version before relying on a signature,

@@ -4,14 +4,13 @@
 
 Use explicit Generator state for positional or named-dimension symbolic draws.
 API cautions below refer to PyTensor 3.3.0 and PyMC 6.3.1; check the official
-sources against the installed version. Simulating a graph is not posterior
-inference or evidence that a scientific model is calibrated.
+sources against the installed version.
 
 ## State is an input and an output
 
-A random variable is not a magic source of fresh values. Given the same state,
-parameters, shape, algorithm, dtype, and execution environment, its evaluation is
-reproducible. A deterministic transform of an already drawn node uses that same
+Given the same Generator state, parameters, shape, algorithm, dtype, and execution
+environment, a random variable's evaluation is reproducible. A deterministic
+transform of an already drawn node uses that same
 draw: `2 * x + 1` does not resample `x`. Evaluating a random expression and
 persisting its *returned state* are separate operations.
 

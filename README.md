@@ -15,27 +15,37 @@ a folder of instructions and focused references in the
 
 ## Install
 
-### Any compatible agent
+### Local checkout
 
-Use the [Skills CLI](https://github.com/vercel-labs/skills):
+From the repository root, use the [Skills CLI](https://github.com/vercel-labs/skills):
 
 ```bash
-npx skills add pymc-devs/pymc-agent-skills
+npx skills add .
 ```
 
-Choose the skills and agents you want. From a local checkout, use
-`npx skills add .` instead.
+Choose the skills and agents you want.
 
 Or copy individual directories from `skills/` into your agent's supported skills
 location. Keep the whole directory, including references, any scripts and `LICENSE`.
 No custom installer or running service is required.
 
-### Claude Code plugin
+### Published repository (publication required)
 
-Install the same skills as a managed bundle:
+Use the following commands only after the matching skills and marketplace
+manifest have been published to `fonnesbeck/pymc-agent-skills`. A local checkout,
+installer discovery or manifest validation does not establish remote availability
+or successful plugin installation.
+
+For the Skills CLI:
+
+```bash
+npx skills add fonnesbeck/pymc-agent-skills
+```
+
+For a Claude Code managed bundle:
 
 ```text
-/plugin marketplace add pymc-devs/pymc-agent-skills
+/plugin marketplace add fonnesbeck/pymc-agent-skills
 /plugin install pymc-agent-skills@pymc-agent-skills
 ```
 
