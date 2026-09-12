@@ -1,0 +1,15 @@
+{
+  "observed_at": "2026-09-11",
+  "versions": {
+    "pymc": "6.3.2",
+    "pytensor": "3.3.1",
+    "arviz": "1.3.0",
+    "arviz-base": "1.3.0",
+    "arviz-stats": "1.3.2",
+    "arviz-plots": "1.3.1",
+    "pymc-extras": "0.14.0",
+    "pymc-bart": "0.13.1",
+    "preliz": "0.28.0",
+    "nutpie": "0.16.11"
+  }
+}
